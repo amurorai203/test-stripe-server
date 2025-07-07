@@ -1,0 +1,10 @@
+
+[build]
+  functions = "functions"
+  publish = "frontend/dist"
+
+[[redirects]]
+  from = "/create-checkout-session"
+  to = "/.netlify/functions/create-checkout-session"
+  status = 200
+  method = "POST"
