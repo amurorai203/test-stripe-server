@@ -1,13 +1,31 @@
-
 const Stripe = require('stripe');
 require('dotenv').config();
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async function (event, context) {
+  const allowedOrigin = 'https://test-stripe-frontend.netlify.app';
+
+  // ✅ Handle CORS preflight request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': allowedOrigin,
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      },
+      body: '',
+    };
+  }
+
+  // ✅ Reject other methods
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: {
+        'Access-Control-Allow-Origin': allowedOrigin,
+      },
       body: 'Method Not Allowed',
     };
   }
@@ -26,20 +44,24 @@ exports.handler = async function (event, context) {
           quantity: 1,
         },
       ],
-      success_url: 'http://localhost:5173/success',
-      cancel_url: 'http://localhost:5173/cancel',
+      success_url: `${allowedOrigin}/success`,
+      cancel_url: `${allowedOrigin}/cancel`,
     });
 
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': allowedOrigin,
+        'Access-Control-Allow-Headers': 'Content-Type',
       },
       body: JSON.stringify({ id: session.id }),
     };
   } catch (error) {
     return {
       statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': allowedOrigin,
+      },
       body: JSON.stringify({ error: error.message }),
     };
   }
