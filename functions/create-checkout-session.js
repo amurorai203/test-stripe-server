@@ -4,14 +4,22 @@ require('dotenv').config();
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 exports.handler = async function (event, context) {
-  const allowedOrigin = 'https://test-stripe-frontend.netlify.app';
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://testupl.netlify.app',
+  'https://test-stripe-frontend.netlify.app'
+];
+  
+const origin = event.headers.origin;
+
+const isAllowed = allowedOrigins.includes(origin);
 
   // ✅ Handle CORS preflight request
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': allowedOrigin,
+        'Access-Control-Allow-Origin': isAllowed ? origin : '',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
       },
