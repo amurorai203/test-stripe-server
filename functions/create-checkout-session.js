@@ -3,37 +3,36 @@ require('dotenv').config();
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-exports.handler = async function (event, context) {
+// List of allowed frontend origins
 const allowedOrigins = [
   'http://localhost:5173',
   'https://testupl.netlify.app',
   'https://test-stripe-frontend.netlify.app'
 ];
-  
-const origin = event.headers.origin;
 
-const isAllowed = allowedOrigins.includes(origin);
+exports.handler = async function (event, context) {
+  const origin = event.headers.origin || '';
+  const isAllowedOrigin = allowedOrigins.includes(origin);
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : '',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
 
-  // ✅ Handle CORS preflight request
+  // Handle preflight request
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': isAllowed ? origin : '',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      },
+      headers: corsHeaders,
       body: '',
     };
   }
 
-  // ✅ Reject other methods
+  // Disallow all non-POST methods
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: {
-        'Access-Control-Allow-Origin': allowedOrigin,
-      },
+      headers: corsHeaders,
       body: 'Method Not Allowed',
     };
   }
@@ -46,30 +45,25 @@ const isAllowed = allowedOrigins.includes(origin);
         {
           price_data: {
             currency: 'usd',
-            product_data: { name: 'Sample Items' },
+            product_data: { name: 'Sample Item' },
             unit_amount: 50100,
           },
           quantity: 1,
         },
       ],
-      success_url: `${allowedOrigin}/success`,
-      cancel_url: `${allowedOrigin}/cancel`,
+      success_url: `${origin}/success`,
+      cancel_url: `${origin}/cancel`,
     });
 
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': allowedOrigin,
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
+      headers: corsHeaders,
       body: JSON.stringify({ id: session.id }),
     };
   } catch (error) {
     return {
       statusCode: 500,
-      headers: {
-        'Access-Control-Allow-Origin': allowedOrigin,
-      },
+      headers: corsHeaders,
       body: JSON.stringify({ error: error.message }),
     };
   }
