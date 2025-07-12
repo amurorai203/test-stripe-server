@@ -37,6 +37,8 @@ exports.handler = async function (event, context) {
     };
   }
 
+  const { amount } = JSON.parse(event.body);
+  
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -44,9 +46,9 @@ exports.handler = async function (event, context) {
       line_items: [
         {
           price_data: {
-            currency: 'usd',
-            product_data: { name: 'Sample Item' },
-            unit_amount: 50100,
+            currency: 'gbp',
+            product_data: { name: 'Custom Payment' },
+            unit_amount: amount,
           },
           quantity: 1,
         },
