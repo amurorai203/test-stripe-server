@@ -37,7 +37,7 @@ exports.handler = async function (event, context) {
     };
   }
 
-  const { amount } = JSON.parse(event.body);
+  const data = JSON.parse(event.body);
   
   try {
     const { amount, currency } = JSON.parse(event.body);
@@ -59,6 +59,15 @@ exports.handler = async function (event, context) {
       ],
       success_url: `${origin}/success`,
       cancel_url: `${origin}/cancel`,
+      
+      metadata: {
+        fullName: data.fullName,
+        addressLine1: data.addressLine1,
+        city: data.city,
+        region: data.region,
+        postcode: data.postcode,
+      },
+      
     });
 
     return {
